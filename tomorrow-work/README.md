@@ -243,3 +243,21 @@ Next steps (future):
 👉 **Tomorrow we start directly from CD / Kubernetes without repeating anything.**
 
 ---
+
+✅ Correct way (conceptually, not a prompt)
+
+You should use Codex in stages, like this:
+
+Give repo link
+
+Ask it to ONLY add Kubernetes manifests
+
+Review
+
+Then ask for ArgoCD GitOps
+
+Review
+
+Then ask for Ansible for infra
+
+Review
