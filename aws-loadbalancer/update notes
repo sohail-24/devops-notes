@@ -1,0 +1,315 @@
+Perfect 👍
+I will give you **complete detailed notes of TODAY’s work** in one clean README file format.
+
+Tomorrow you just say:
+
+> mentor continue from LoadBalancer target registration
+
+And we continue 🔥
+
+You can copy-paste this directly as README.md.
+
+---
+
+# 📘 Kubernetes kubeadm on AWS — Session Notes (Feb 13, 2026)
+
+## 🎯 Goal of Today
+
+Build a production-style Kubernetes cluster on AWS using:
+
+* kubeadm
+* containerd
+* Calico CNI
+* AWS External Cloud Controller Manager
+* AWS NLB via Service type LoadBalancer
+
+---
+
+# 🏗️ Infrastructure Setup
+
+## EC2 Instances Created
+
+We used 3 EC2 instances:
+
+| Node          | Role          | Internal IP |
+| ------------- | ------------- | ----------- |
+| ip-10-0-1-72  | Control Plane | 10.0.1.72   |
+| ip-10-0-2-238 | Worker-1      | 10.0.2.238  |
+| ip-10-0-1-201 | Worker-2      | 10.0.1.201  |
+
+OS: Ubuntu 24.04 LTS
+Runtime: containerd
+K8s Version: v1.29.15
+
+All nodes were in public subnets.
+
+---
+
+# 🔐 Security Group Configuration
+
+Opened required ports:
+
+* 22 (SSH)
+* 6443 (Kubernetes API)
+* 10250 (Kubelet)
+* 30000–32767 (NodePort range)
+* 80 (HTTP)
+* 443 (HTTPS)
+
+Security group was attached to all nodes.
+
+---
+
+# 🧠 IAM Configuration
+
+Created custom policy:
+
+KubernetesCloudControllerPolicy
+
+Permissions included:
+
+* ec2:Describe*
+* ec2:CreateSecurityGroup
+* ec2:CreateTags
+* ec2:AuthorizeSecurityGroupIngress
+* elasticloadbalancing:*
+* iam:CreateServiceLinkedRole (for ELB)
+
+Attached this policy to EC2 Instance Role.
+
+---
+
+# 🌐 Subnet Tagging (IMPORTANT)
+
+We tagged PUBLIC subnets with:
+
+kubernetes.io/role/elb = 1
+kubernetes.io/cluster/k8s-cluster = owned
+
+This allows AWS CCM to create LoadBalancers in those subnets.
+
+---
+
+# ⚙️ Kubernetes Installation
+
+## 1️⃣ Common Setup
+
+Executed common.sh on all nodes.
+
+This performed:
+
+* Disabled swap
+* Loaded kernel modules
+* Configured sysctl
+* Installed containerd
+* Installed kubelet, kubeadm, kubectl
+* Enabled systemd cgroup driver
+
+---
+
+## 2️⃣ Control Plane Initialization
+
+Ran:
+
+```
+kubeadm init \
+  --pod-network-cidr=192.168.0.0/16 \
+  --upload-certs \
+  --cloud-provider=external
+```
+
+Configured kubeconfig.
+
+---
+
+## 3️⃣ Installed Calico
+
+```
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.3/manifests/calico.yaml
+```
+
+Cluster became Ready.
+
+---
+
+## 4️⃣ Joined Worker Nodes
+
+Used kubeadm join command.
+
+Verified:
+
+```
+kubectl get nodes -o wide
+```
+
+All nodes Ready.
+
+---
+
+# ☁️ AWS Cloud Controller Manager
+
+Installed via Helm:
+
+```
+helm install aws-ccm ...
+```
+
+Verified:
+
+```
+kubectl -n kube-system get pods | grep aws
+```
+
+aws-cloud-controller-manager was Running.
+
+This means Kubernetes is integrated with AWS API.
+
+---
+
+# 🧪 LoadBalancer Testing
+
+Created test app:
+
+```
+kubectl create deployment nginx --image=nginx
+kubectl expose deployment nginx --type=LoadBalancer --port=80
+```
+
+Service created successfully.
+
+We verified:
+
+```
+kubectl describe svc nginx
+```
+
+Output showed:
+
+* LoadBalancer Ingress: *.elb.amazonaws.com
+* NodePort assigned (30120)
+* Endpoints: 192.168.204.193:80
+* Events: EnsuredLoadBalancer
+
+So Kubernetes side was correct.
+
+---
+
+# 🚨 Issue We Faced
+
+When accessing ELB DNS:
+
+```
+curl http://*.elb.amazonaws.com
+```
+
+We got:
+
+```
+curl: (52) Empty reply from server
+```
+
+Then we checked AWS Console.
+
+In EC2 → Target Groups:
+
+There were **NO targets registered**.
+
+That is why ELB returned empty response.
+
+---
+
+# 🧠 Root Cause
+
+This indicates one of the following:
+
+1. Cluster name mismatch
+2. Subnet tag mismatch
+3. IAM permission issue
+4. External cloud provider flag issue
+5. Node registration delay
+
+Important observation:
+
+Classic Load Balancer was initially created.
+Then we recreated service.
+Then new ELB created.
+
+But target group remained empty.
+
+This means AWS CCM created LB, but did not attach worker nodes properly.
+
+---
+
+# 🔍 Current Cluster State (Before Lunch)
+
+```
+kubectl get nodes -o wide
+kubectl get svc
+kubectl describe svc nginx
+kubectl get endpoints nginx
+kubectl -n kube-system get pods | grep aws
+```
+
+Everything inside Kubernetes looks healthy.
+
+Problem is AWS target registration.
+
+---
+
+# 📌 Where We Stop Today
+
+Cluster is:
+
+✔ Running
+✔ Nodes Ready
+✔ CCM Running
+✔ LoadBalancer created
+❌ Targets not registered in target group
+
+Tomorrow we will:
+
+1. Verify clusterName consistency
+2. Verify subnet tags again
+3. Check CCM logs
+4. Confirm instance role properly attached
+5. Ensure nodes have correct providerID
+6. Fix target group registration
+7. Validate ELB works in browser
+
+---
+
+# 💪 What You Achieved Today
+
+You:
+
+* Built full kubeadm cluster on AWS manually
+* Integrated external AWS CCM
+* Created real LoadBalancer Service
+* Understood ELB + target group architecture
+* Debugged real production networking issue
+
+This is REAL DevOps engineering work.
+
+---
+
+# 🚀 Tomorrow Starting Point
+
+Start with:
+
+```
+kubectl describe nodes | grep ProviderID
+kubectl -n kube-system logs deploy/aws-ccm
+```
+
+Then we fix target registration.
+
+---
+
+🔥 Mentor Note:
+
+Today was high-level production debugging.
+You handled it calmly.
+That is how real DevOps engineers work.
+
+Now go rest.
+Tomorrow we finish it properly.
