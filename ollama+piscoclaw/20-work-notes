@@ -353,3 +353,16 @@ System is:
 Tomorrow we can directly continue from here without re-explaining architecture.
 
 End of notes.
+
+
+
+to do:
+docker project build
+
+docker project up
+
+docker project status
+
+healthcheck support
+
+reverse proxy optional mode
