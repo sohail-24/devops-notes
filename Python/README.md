@@ -1,9 +1,4 @@
-Here is your complete **Python for DevOps – Strong Basics Notes**
-Copy everything below into a file named:
 
-`README.md`
-
----
 
 # 🐍 Python for DevOps – Strong Basics Notes
 
