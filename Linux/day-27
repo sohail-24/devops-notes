@@ -1,0 +1,326 @@
+# LINUX FOR DEVOPS — FOUNDATION NOTES (Mohammed Sohail)
+
+## 🔹 What We Have Learned So Far
+
+---
+
+# 1️⃣ Linux Filesystem Basics
+
+## What is `/` ?
+
+* `/` is the **root directory**
+* It is the top of the entire Linux filesystem
+* Everything starts from `/`
+* Similar to `C:\` in Windows
+
+Example:
+
+* `/etc/nginx/nginx.conf` → absolute path
+* `etc` → relative path (depends on current location)
+
+---
+
+# 2️⃣ Important Directories
+
+| Directory | Purpose                    |
+| --------- | -------------------------- |
+| /home     | User home directories      |
+| /etc      | System configuration files |
+| /var      | Logs and changing data     |
+| /usr      | Installed programs         |
+| /opt      | Optional applications      |
+| /tmp      | Temporary files            |
+| /root     | Root user's home           |
+
+---
+
+# 3️⃣ Absolute vs Relative Path
+
+Absolute Path:
+
+* Starts with `/`
+* Always same location
+* Example: `/etc/nginx/nginx.conf`
+
+Relative Path:
+
+* Does not start with `/`
+* Depends on current directory
+* Example: `cd etc` (goes to ./etc, not /etc)
+
+---
+
+# 4️⃣ Users & Groups
+
+Every file has:
+
+* Owner
+* Group
+
+Example:
+
+```
+-rw-rw-r-- 1 ubuntu devops test.txt
+```
+
+Breakdown:
+
+* Owner → ubuntu
+* Group → devops
+* Others → everyone else
+
+Linux checks permissions in this order:
+
+1. If you are owner → owner permissions apply
+2. Else if you are in file's group → group permissions apply
+3. Else → others permissions apply
+
+Linux does NOT combine permissions.
+It stops at first match.
+
+---
+
+# 5️⃣ UID & GID
+
+Every user has:
+
+* UID (User ID)
+* GID (Group ID)
+
+Check with:
+
+```
+id
+```
+
+Linux internally uses numbers (UID/GID), not usernames.
+
+---
+
+# 6️⃣ chmod (Change Permissions)
+
+Permissions:
+
+* r = 4
+* w = 2
+* x = 1
+
+Numeric Examples:
+
+| Number | Meaning |
+| ------ | ------- |
+| 7      | rwx     |
+| 6      | rw-     |
+| 5      | r-x     |
+| 4      | r--     |
+
+Common permission sets:
+
+| Type              | Permission |
+| ----------------- | ---------- |
+| Script            | 755        |
+| Config file       | 644        |
+| Private key       | 600 or 400 |
+| Private directory | 700        |
+
+Difference:
+
+* `chmod +x file` → adds execute
+* `chmod 755 file` → sets exact permission
+
+In DevOps, numeric mode is preferred (predictable state).
+
+---
+
+# 7️⃣ chown (Change Owner)
+
+Change owner:
+
+```
+sudo chown user file
+```
+
+Change owner and group:
+
+```
+sudo chown user:group file
+```
+
+Owner and group are separate.
+
+Important:
+User must exist, or command fails.
+
+---
+
+# 8️⃣ > vs >> (Redirection)
+
+`>` → overwrite file
+`>>` → append to file
+
+Example:
+
+```
+echo "hello" > file.txt   # replaces content
+echo "world" >> file.txt  # adds to bottom
+```
+
+Never overwrite logs accidentally in production.
+
+---
+
+# 9️⃣ Directory Permissions
+
+For directories:
+
+| Permission | Meaning                   |
+| ---------- | ------------------------- |
+| r          | List files                |
+| w          | Create/delete files       |
+| x          | Enter (cd into directory) |
+
+Execute on directory = ability to enter.
+
+Without `x`, you cannot cd into it.
+
+---
+
+# 🔟 Nginx + Linux Connection
+
+From nginx.conf:
+
+```
+user www-data;
+```
+
+Nginx worker runs as `www-data`.
+
+If `/var/www/html` is:
+
+```
+drwx------ root root
+```
+
+Then:
+
+* www-data cannot enter
+* You get 403 error
+
+Services run as specific users.
+Permissions must allow that user access.
+
+---
+
+# 1️⃣1️⃣ Port & Process Understanding
+
+Check running nginx:
+
+```
+ps aux | grep nginx
+```
+
+Check listening ports:
+
+```
+sudo ss -tulpn | grep 80
+```
+
+Flow:
+Client → Port 80 → Nginx → File system
+
+---
+
+# 🔥 What You Understand Now
+
+✔ Linux filesystem structure
+✔ Absolute vs relative path
+✔ Users & groups
+✔ Permission model (owner → group → others)
+✔ chmod numeric system
+✔ chown ownership control
+✔ Directory permission behavior
+✔ Basic nginx + Linux permission relationship
+✔ Port binding basics
+
+You are approximately 95% strong in Linux permission & filesystem fundamentals.
+
+---
+
+# 🚀 What We Will Learn Next
+
+## Phase 2 — Advanced Linux for DevOps
+
+1. Special permissions
+
+   * setuid
+   * setgid
+   * sticky bit
+   * Why /tmp works differently
+
+2. Process management deep dive
+
+   * ps
+   * top
+   * kill
+   * nice / renice
+   * background jobs
+
+3. Systemd deep understanding
+
+   * service lifecycle
+   * enable vs start
+   * journalctl logs
+   * writing custom service
+
+4. Networking deep dive
+
+   * ss
+   * netstat
+   * curl debugging
+   * ip route
+   * firewall basics
+
+5. Log analysis mindset
+
+   * tail -f
+   * journalctl
+   * grep in logs
+   * debugging 502 / 403 errors
+
+6. Real DevOps debugging simulation
+
+---
+
+# 🧠 DevOps Mindset You Developed
+
+When something fails, think:
+
+* Which user is running the service?
+* Does that user have permission?
+* Which port is it using?
+* Is service running?
+* Are logs showing errors?
+
+That is production thinking.
+
+---
+
+# 🔥 Current Level
+
+Linux user → ✅
+Linux confident → ✅
+Permission expert → almost ✅
+Production debugging mindset → developing
+
+---
+
+# Next Session Goal
+
+Move from filesystem mastery → service & process mastery.
+
+We will start with:
+Special permissions + real debugging case.
+
+---
+
+END OF DAY NOTES
