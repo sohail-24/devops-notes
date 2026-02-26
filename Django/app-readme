@@ -187,3 +187,26 @@ Run tests
 Submit a pull request
 Support
 For support, email support@djangoshop.com or open an issue on GitHub.
+
+
+
+
+
+
+
+
+
+
+
+
+how to start:
+
+/opt/homebrew/bin/python3.12 -m venv venv
+source venv/bin/activate
+
+python manage.py migrate
+
+python manage.py runserver
+
+
+deactivate
