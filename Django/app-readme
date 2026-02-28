@@ -265,6 +265,15 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 #add in env and add public ip also
 
 
+#create app logs
+
+mkdir logs
+chmod 777 logs
+
+
+#docker-compose etc then
+
+
 #create super user
 
 docker exec -it sohailshop_web python manage.py createsuperuser
