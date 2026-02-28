@@ -243,6 +243,11 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 #add in env and add public ip also
 
 
+#create super user
+
+docker exec -it sohailshop_web python manage.py createsuperuser
+
+
 
 
 
