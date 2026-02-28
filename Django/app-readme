@@ -199,17 +199,23 @@ For support, email support@djangoshop.com or open an issue on GitHub.
 
 
 
-how to crate environment
+#how to crate environment
 
 /opt/homebrew/bin/python3.12 -m venv venv
 
-how to check:
+#how to check:
 
 python manage.py check
 
-how to start
+#how to start
 
 source venv/bin/activate
+
+# on internet
+
+http://127.0.0.1:8000/admin/
+
+#in terminal
 
 python manage.py migrate
 
