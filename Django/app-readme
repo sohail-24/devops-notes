@@ -211,15 +211,46 @@ python manage.py check
 
 source venv/bin/activate
 
-# on internet
-
-http://127.0.0.1:8000/admin/
-
 #in terminal
 
 python manage.py migrate
 
 python manage.py runserver
 
+# on internet
+
+http://127.0.0.1:8000/admin/
+
+#after finish
 
 deactivate
+
+
+
+
+
+
+On aws
+
+#cp env
+
+cp .env.example .env
+
+#Generate new secret key
+
+python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+
+#add in env and add public ip also
+
+
+
+
+
+
+
+
+
+
+
+
+
