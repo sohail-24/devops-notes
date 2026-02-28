@@ -190,6 +190,28 @@ For support, email support@djangoshop.com or open an issue on GitHub.
 
 
 
+>>> cat config/settings/prod.py
+
+
+# HTTPS Security
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+#Replace it with
+
+# HTTPS Security (TEMPORARY – HTTP mode)
+SECURE_SSL_REDIRECT = False
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+>>>>/
+
+
+
+
+
+
+
 
 
 
