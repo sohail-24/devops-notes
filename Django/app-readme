@@ -279,9 +279,12 @@ chmod 777 logs
 docker exec -it sohailshop_web python manage.py createsuperuser
 
 
+#in k8s 
+#first
+kubectl get pods
 
-
-
+example
+kubectl exec -it django-8694745b57-d8st6 -n ecommerce -- python manage.py createsuperuser
 
 
 
