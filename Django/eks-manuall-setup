@@ -1,0 +1,134 @@
+# ============================================
+# EKS MANUAL SETUP AFTER WORKER NODES CREATED
+# Project: Terraform EKS Cluster
+# Cluster: django-eks-cluster
+# Region: ap-south-1
+# ============================================
+
+
+# ------------------------------------------------
+# 1. Verify kubectl access to cluster
+# ------------------------------------------------
+
+kubectl get namespaces
+
+
+# ------------------------------------------------
+# 2. Verify cluster services
+# ------------------------------------------------
+
+kubectl get svc -A
+
+
+# ------------------------------------------------
+# 3. Verify Helm installation
+# ------------------------------------------------
+
+helm version
+
+
+# ------------------------------------------------
+# 4. Check OIDC provider for cluster
+# ------------------------------------------------
+
+aws eks describe-cluster \
+--name django-eks-cluster \
+--query "cluster.identity.oidc.issuer" \
+--output text
+
+
+# ------------------------------------------------
+# 5. Download AWS Load Balancer Controller IAM policy
+# ------------------------------------------------
+
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+
+
+# ------------------------------------------------
+# 6. Create IAM Policy for ALB Controller
+# ------------------------------------------------
+
+aws iam create-policy \
+--policy-name AWSLoadBalancerControllerIAMPolicy \
+--policy-document file://iam_policy.json
+
+
+# ------------------------------------------------
+# 7. Check eksctl version
+# ------------------------------------------------
+
+eksctl version
+
+
+# ------------------------------------------------
+# 8. Attach OIDC provider to EKS cluster
+# ------------------------------------------------
+
+eksctl utils associate-iam-oidc-provider \
+--region ap-south-1 \
+--cluster django-eks-cluster \
+--approve
+
+
+# ------------------------------------------------
+# 9. Create IAM Service Account for ALB Controller
+# ------------------------------------------------
+
+eksctl create iamserviceaccount \
+  --cluster=django-eks-cluster \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --role-name AmazonEKSLoadBalancerControllerRole \
+  --attach-policy-arn arn:aws:iam::111376855660:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve
+
+
+# ------------------------------------------------
+# 10. Add Helm repository for AWS EKS charts
+# ------------------------------------------------
+
+helm repo add eks https://aws.github.io/eks-charts
+
+
+# ------------------------------------------------
+# 11. Update Helm repositories
+# ------------------------------------------------
+
+helm repo update
+
+
+# ------------------------------------------------
+# 12. Install AWS Load Balancer Controller
+# ------------------------------------------------
+
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+-n kube-system \
+--set clusterName=django-eks-cluster \
+--set serviceAccount.create=false \
+--set serviceAccount.name=aws-load-balancer-controller
+
+
+# ------------------------------------------------
+# 13. Verify controller pods
+# ------------------------------------------------
+
+kubectl get pods -n kube-system
+
+
+# ------------------------------------------------
+# 14. Verify cluster nodes
+# ------------------------------------------------
+
+kubectl get nodes
+
+
+# ------------------------------------------------
+# 15. Verify services again
+# ------------------------------------------------
+
+kubectl get svc -A
+
+
+# ------------------------------------------------
+# END OF TODAY WORK
+# ------------------------------------------------
