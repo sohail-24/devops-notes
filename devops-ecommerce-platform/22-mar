@@ -1,0 +1,313 @@
+# 🚀 DEVOPS E-COMMERCE PLATFORM (KUBEADM + TERRAFORM + ARGOCD)
+
+## 🧠 PROJECT GOAL
+
+Build a full DevOps platform:
+
+* Terraform → Infra (VPC + EC2)
+* kubeadm → Kubernetes cluster
+* Calico → Networking
+* ArgoCD → GitOps deployment
+* Django App → Final deployment
+
+---
+
+# 🏗️ ARCHITECTURE
+
+Internet
+↓
+AWS VPC (10.0.0.0/16)
+↓
+Public Subnet (10.0.1.0/24)
+↓
+EC2 Instances:
+
+* 1 Master (Control Plane)
+* 2 Worker Nodes
+  ↓
+  Kubernetes Cluster (kubeadm)
+  ↓
+  CNI (Calico)
+  ↓
+  ArgoCD (GitOps)
+  ↓
+  Django E-commerce App
+
+---
+
+# 📁 PROJECT STRUCTURE
+
+devops-ecommerce-platform/
+├── scripts/
+│   ├── master.sh
+│   └── worker.sh
+├── terraform/
+│   ├── provider.tf
+│   ├── variables.tf
+│   ├── terraform.tfvars
+│   ├── vpc.tf
+│   ├── security.tf
+│   ├── ec2.tf
+│   └── outputs.tf
+
+---
+
+# ⚙️ TERRAFORM SETUP
+
+## 🔹 What we created:
+
+* VPC
+* Public Subnet
+* Internet Gateway
+* Route Table
+* Security Group
+* EC2 Instances (1 master + 2 workers)
+
+## 🔹 Important Security Group Ports
+
+* 22 → SSH
+* 6443 → Kubernetes API
+* 80, 443 → HTTP/HTTPS
+* 30000-32767 → NodePort (VERY IMPORTANT)
+* 10250 → kubelet communication
+
+---
+
+# 🚀 KUBEADM SETUP
+
+## 🔹 MASTER NODE FLOW
+
+1. Disable swap
+2. Install containerd + docker
+3. Install kubeadm, kubelet, kubectl
+4. Initialize cluster:
+
+kubeadm init --pod-network-cidr=192.168.0.0/16
+
+5. Configure kubectl:
+
+mkdir -p ~/.kube
+cp /etc/kubernetes/admin.conf ~/.kube/config
+chown $(id -u):$(id -g) ~/.kube/config
+
+6. Generate join command:
+
+kubeadm token create --print-join-command > join.sh
+
+---
+
+## 🔹 WORKER NODE FLOW
+
+1. Same setup (docker, kubeadm, etc.)
+2. Fetch join.sh from master
+3. Execute:
+
+bash join.sh
+
+---
+
+## 🔹 VERIFY CLUSTER
+
+kubectl get nodes
+
+Expected:
+
+* master → Ready
+* workers → Ready
+
+---
+
+# 🌐 CALICO (CNI NETWORK)
+
+## 🔹 Purpose:
+
+* Pod-to-pod communication
+* DNS resolution
+* Required for Kubernetes networking
+
+---
+
+## ❌ ISSUE WE FACED
+
+* Calico CrashLoopBackOff
+* DNS not working
+* ArgoCD failing
+
+---
+
+## 🧠 ROOT CAUSE
+
+* YAML misconfiguration
+* Missing CIDR
+* Wrong IP detection
+* Partial deletion (Ctrl + C mistake)
+
+---
+
+## ✅ FINAL FIX METHOD
+
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.3/manifests/calico.yaml
+
+kubectl set env daemonset/calico-node -n kube-system 
+IP_AUTODETECTION_METHOD=interface=eth0
+
+---
+
+## 🔹 VERIFY CALICO
+
+kubectl get pods -n kube-system | grep calico
+
+Expected:
+
+* calico-node → 1/1 Running
+* calico-kube-controllers → Running
+
+---
+
+# 🌐 DNS TEST
+
+kubectl run test --rm -it --image=busybox -- /bin/sh
+
+Inside:
+nslookup argocd-redis.argocd.svc.cluster.local
+
+---
+
+# 🚀 ARGOCD SETUP
+
+## 🔹 Install
+
+kubectl create namespace argocd
+
+kubectl apply -n argocd 
+-f https://raw.githubusercontent.com/argoproj/argo-cd/v2.10.7/manifests/install.yaml
+
+---
+
+## 🔹 Expose (NodePort)
+
+kubectl patch svc argocd-server -n argocd -p '{
+"spec": { "type": "NodePort" }
+}'
+
+---
+
+## 🔹 Get Port
+
+kubectl get svc -n argocd
+
+---
+
+## 🔹 Access
+
+https://<WORKER_PUBLIC_IP>:<NODEPORT>
+
+---
+
+## 🔹 Get Password
+
+kubectl -n argocd get secret argocd-initial-admin-secret 
+-o jsonpath="{.data.password}" | base64 -d
+
+---
+
+# 🚨 ISSUES WE FACED (IMPORTANT)
+
+## 1. kube-proxy CrashLoop
+
+→ Fixed by restarting pods
+
+## 2. NodePort not accessible
+
+→ Fixed by SG ports (30000–32767)
+
+## 3. ArgoCD CrashLoop
+
+→ Root cause = DNS failure
+
+## 4. DNS failure
+
+→ Root cause = Calico broken
+
+## 5. Calico issues
+
+→ YAML + network config mistakes
+
+---
+
+# 🧠 KEY LEARNINGS
+
+1. Infrastructure ≠ Application
+2. Networking is hardest part
+3. YAML errors break cluster
+4. Always verify:
+
+   * pods
+   * services
+   * endpoints
+5. Never interrupt (Ctrl+C) critical operations
+
+---
+
+# 🚀 WHAT TO DO TOMORROW
+
+## STEP 1
+
+Ensure Calico is fully running
+
+## STEP 2
+
+Test DNS
+
+## STEP 3
+
+Restart ArgoCD
+
+kubectl delete pods -n argocd --all
+
+---
+
+## STEP 4
+
+Verify ArgoCD
+
+kubectl get pods -n argocd
+
+---
+
+## STEP 5
+
+Login to ArgoCD UI
+
+---
+
+## STEP 6 (FINAL GOAL)
+
+Deploy Django App using ArgoCD
+
+---
+
+# 🎯 FINAL TARGET
+
+GitHub → ArgoCD → Kubernetes → Running Django App
+
+---
+
+# 🔥 YOUR LEVEL NOW
+
+You are at:
+👉 Intermediate → Advanced DevOps Engineer 🚀
+
+---
+
+# 💬 RESUME COMMAND
+
+Tomorrow say:
+
+"mentor continue from calico"
+
+OR
+
+"mentor continue argocd deployment"
+
+---
