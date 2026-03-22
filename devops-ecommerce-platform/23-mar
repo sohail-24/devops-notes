@@ -1,0 +1,317 @@
+# 🚀 DJANGO E-COMMERCE K8s + ARGOCD + TERRAFORM (SESSION NOTES)
+
+---
+
+# 🧱 1. INFRA SETUP (TERRAFORM)
+
+## ✅ What we changed
+
+* Instance type changed (due to availability issue):
+
+  ```
+  instance_type = "m7i-flex.large"
+  ```
+
+* Storage increased:
+
+  ```
+  root_block_device {
+    volume_size = 20
+  }
+  ```
+
+## ✅ Commands used
+
+```
+terraform init
+terraform plan
+terraform apply
+```
+
+## 📌 Result
+
+* New EC2 instances created (Master + Workers)
+* Fresh Kubernetes cluster setup
+
+---
+
+# ☸️ 2. KUBERNETES SETUP (kubeadm)
+
+## ✅ Cluster working components
+
+* Control Plane ✅
+* Worker Nodes ✅
+* Calico CNI ✅
+
+## ✅ Verified using:
+
+```
+kubectl get nodes
+kubectl get pods -A
+```
+
+---
+
+# 🚀 3. ARGOCD DEPLOYMENT
+
+## ✅ Applied Application
+
+```
+kubectl apply -f argocd/app.yaml -n argocd
+```
+
+## 🔁 Forced refresh
+
+```
+kubectl annotate application ecommerce-app \
+argocd.argoproj.io/refresh=hard -n argocd
+```
+
+---
+
+# 🛠️ 4. APPLICATION DEPLOYMENT (HELM)
+
+## ✅ Components deployed
+
+* Django Deployment
+* PostgreSQL StatefulSet
+* Redis Deployment
+* Services (ClusterIP)
+* Secret
+
+## ✅ Verified:
+
+```
+kubectl get pods -n ecommerce
+kubectl get svc -n ecommerce
+```
+
+---
+
+# ❌ 5. ISSUE 1: POSTGRES POD PENDING
+
+## ❌ Problem
+
+```
+PVC Pending → No StorageClass
+```
+
+## ✅ Fix
+
+Installed Local Path Provisioner:
+
+```
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+```
+
+Set default:
+
+```
+kubectl patch storageclass local-path \
+-p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
+Restarted:
+
+```
+kubectl delete pvc --all -n ecommerce
+kubectl delete pod postgres-0 -n ecommerce
+```
+
+## ✅ Result
+
+* Postgres Running ✅
+
+---
+
+# ❌ 6. ISSUE 2: INGRESS NOT WORKING
+
+## ❌ Problem
+
+```
+LoadBalancer EXTERNAL-IP = <pending>
+```
+
+## 🔍 Root Cause
+
+* Using kubeadm (NOT cloud-managed cluster)
+* No real LoadBalancer support
+
+## ✅ Fix
+
+Changed service type:
+
+```
+kubectl patch svc ingress-nginx-controller \
+-n ingress-nginx \
+-p '{"spec": {"type": "NodePort"}}'
+```
+
+## ✅ Verified:
+
+```
+kubectl get svc -n ingress-nginx
+```
+
+Got:
+
+```
+80:32359
+```
+
+---
+
+# 🌐 7. APPLICATION ACCESS
+
+## ✅ Working internally
+
+```
+curl localhost:32359
+```
+
+✔ Django HTML loaded successfully
+
+## ❌ External browser issue
+
+```
+http://13.127.134.164:32359 → Timeout
+```
+
+## 🔍 Root Cause
+
+* AWS Security Group not allowing NodePort range (30000–32767)
+
+---
+
+# ❌ 8. ISSUE 3: DJANGO 500 ERROR (EARLIER)
+
+## ❌ Problem
+
+```
+500 Internal Server Error
+```
+
+## 🔍 Root Cause
+
+* Migrations not applied
+
+## ✅ Fix
+
+```
+kubectl exec -it deploy/django -n ecommerce -- \
+python manage.py migrate
+```
+
+## ✅ Result
+
+```
+No migrations to apply
+```
+
+✔ DB synced successfully
+
+---
+
+# ❌ 9. ISSUE 4: MIGRATION JOB NOT RUNNING
+
+## ❌ Problem
+
+* ArgoCD hook job not triggered
+
+## 🔍 Root Cause
+
+* ArgoCD stuck in:
+
+```
+Ingress → Progressing
+```
+
+## 📌 Impact
+
+* Hook (migration job) never executed
+
+---
+
+# 📊 CURRENT STATUS
+
+| Component      | Status                     |
+| -------------- | -------------------------- |
+| Django         | ✅ Running                  |
+| PostgreSQL     | ✅ Running                  |
+| Redis          | ✅ Running                  |
+| PVC            | ✅ Fixed                    |
+| Ingress        | ⚠️ Working internally only |
+| ArgoCD         | ⚠️ Progressing             |
+| Browser Access | ❌ Not working externally   |
+
+---
+
+# 🔥 FINAL WORKING STATE (IMPORTANT)
+
+✔ App works inside cluster
+✔ DB working
+✔ Ingress routing working
+❌ External access blocked (Security Group issue)
+
+---
+
+# 🚀 NEXT SESSION PLAN (VERY IMPORTANT)
+
+## 🔥 1. Fix AWS Security Group
+
+Allow:
+
+* Port 80
+* Port 443
+* NodePort range (30000–32767)
+
+---
+
+## 🔥 2. Verify Access
+
+```
+http://<PUBLIC-IP>:32359
+```
+
+---
+
+## 🔥 3. Fix ArgoCD Health
+
+* Ensure ingress becomes Healthy
+* Migration job runs automatically
+
+---
+
+## 🔥 4. Production Upgrade Plan
+
+* Add domain → sohaildevops.site
+* Add TLS → cert-manager
+* Replace NodePort → ALB / NLB
+
+---
+
+# 🧠 DEVOPS LEARNING FROM TODAY
+
+🔥 Infra issue → blocks pipeline
+🔥 Storage missing → DB fails
+🔥 Ingress misconfig → app inaccessible
+🔥 ArgoCD health → controls deployment flow
+
+---
+
+# 💪 FINAL SUMMARY
+
+Today you did:
+
+✔ Terraform infra provisioning
+✔ Kubernetes cluster setup
+✔ ArgoCD GitOps deployment
+✔ Storage debugging (PVC fix)
+✔ Ingress debugging (NodePort fix)
+✔ Django debugging (migration fix)
+
+👉 This is REAL DevOps Engineer work
+
+---
+
+# 🚀 END
