@@ -1,0 +1,368 @@
+# 🚀 DEVOPS PROJECT NOTES — DAY PROGRESS
+
+## 📌 PROJECT: DevOps E-Commerce Platform (Terraform + Kubernetes + ArgoCD)
+
+---
+
+# 🔥 1. WHAT WE BUILT TODAY
+
+## ✅ Infrastructure (Terraform)
+
+* Created:
+
+  * VPC
+  * Subnet
+  * Internet Gateway
+  * Route Table
+  * Security Group
+  * EC2 instances (1 Master + Workers)
+* Used **remote backend**:
+
+  * S3 bucket → terraform state
+  * DynamoDB → state locking
+
+### Commands:
+
+```bash
+terraform init
+terraform apply -auto-approve
+terraform destroy -auto-approve
+```
+
+---
+
+## ✅ CI/CD (GitHub Actions)
+
+Pipeline steps:
+
+1. Checkout repo
+2. Setup Terraform
+3. Configure AWS credentials
+4. Terraform init + apply
+5. Get EC2 public IP
+6. SSH into instance
+7. Run bootstrap script
+
+### Key Learning:
+
+* Secrets required:
+
+  * AWS_ACCESS_KEY_ID
+  * AWS_SECRET_ACCESS_KEY
+  * EC2_KEY (PEM formatted with \n)
+
+---
+
+## ✅ Kubernetes (kubeadm cluster)
+
+* Setup using:
+
+  * master.sh
+  * worker.sh
+* Installed:
+
+  * Container runtime
+  * kubeadm, kubelet, kubectl
+  * Calico CNI
+
+---
+
+## ✅ ArgoCD (GitOps)
+
+Installed ArgoCD and created application:
+
+```bash
+kubectl apply -f argocd/app.yaml
+```
+
+### Auto Sync Enabled:
+
+```yaml
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+```
+
+---
+
+# 🔥 2. MAIN ISSUE WE DEBUGGED
+
+## ❌ Problem:
+
+```text
+postgres-0 → Pending
+```
+
+### Root Cause:
+
+```text
+No StorageClass in kubeadm cluster
+PVC not bound
+```
+
+---
+
+# 🧠 IMPORTANT CONCEPT
+
+| Component    | Purpose            |
+| ------------ | ------------------ |
+| S3           | Terraform state    |
+| DynamoDB     | Locking            |
+| EBS          | Kubernetes storage |
+| PVC          | Request storage    |
+| StorageClass | Provision storage  |
+
+---
+
+# 🔥 3. FAST FIX (OPTION 1 — USED)
+
+## ❌ Removed PVC:
+
+```yaml
+volumeClaimTemplates ❌
+```
+
+## ✅ Added:
+
+```yaml
+volumes:
+  - name: postgres-storage
+    emptyDir: {}
+```
+
+### Result:
+
+```text
+postgres → Running ✅
+django → Running ✅
+```
+
+---
+
+# ⚠️ LIMITATION
+
+```text
+Data is NOT persistent ❌
+Pod restart → data lost ❌
+```
+
+---
+
+# 🔥 4. KUBERNETES DEBUGGING LEARNED
+
+## Key Commands:
+
+### Pods:
+
+```bash
+kubectl get pods -n ecommerce
+kubectl describe pod <pod> -n ecommerce
+kubectl logs <pod> -n ecommerce
+```
+
+### Storage:
+
+```bash
+kubectl get pvc -n ecommerce
+kubectl delete pvc <name> -n ecommerce
+```
+
+### StatefulSet:
+
+```bash
+kubectl delete statefulset postgres -n ecommerce
+```
+
+---
+
+# 🔥 5. CRITICAL LEARNING (VERY IMPORTANT)
+
+## ❗ StatefulSet + PVC behavior:
+
+```text
+Changes are NOT applied automatically ❌
+Must delete:
+  - StatefulSet
+  - PVC
+```
+
+---
+
+# 🔥 6. ARGOCD BEHAVIOR
+
+## Important:
+
+```text
+Git updated ≠ cluster updated immediately
+```
+
+### Force Sync:
+
+```bash
+kubectl delete application ecommerce-app -n argocd
+kubectl apply -f argocd/app.yaml
+```
+
+---
+
+# 🔥 7. FINAL RESULT TODAY
+
+```text
+postgres → Running ✅
+django → Running ✅
+redis → Running ✅
+```
+
+✔ Full application deployed successfully
+✔ End-to-end pipeline working
+
+---
+
+# 🚨 8. BLOCKER
+
+## AWS Account Suspended ❌
+
+Impact:
+
+* Cannot continue production setup
+* Resources may stop anytime
+
+---
+
+# 🚀 9. NEXT PLAN (WHEN RESUMED)
+
+---
+
+## 🔴 STEP 1: ACCESS APPLICATION
+
+### Change service:
+
+```bash
+kubectl edit svc django -n ecommerce
+```
+
+```yaml
+type: NodePort
+```
+
+### Get port:
+
+```bash
+kubectl get svc -n ecommerce
+```
+
+### Access:
+
+```text
+http://<EC2_PUBLIC_IP>:<NODE_PORT>
+```
+
+---
+
+## 🔴 STEP 2: PRODUCTION STORAGE (OPTION 2)
+
+### Install EBS CSI Driver:
+
+```bash
+kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
+```
+
+---
+
+### Create StorageClass:
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+```
+
+Apply:
+
+```bash
+kubectl apply -f sc.yaml
+```
+
+---
+
+### Update postgres.yaml:
+
+```yaml
+storageClassName: ebs-sc
+```
+
+---
+
+### Restart:
+
+```bash
+kubectl delete statefulset postgres -n ecommerce
+kubectl delete pvc -n ecommerce --all
+```
+
+---
+
+## 🔴 STEP 3: INGRESS SETUP
+
+* Install NGINX Ingress
+* Route traffic via domain
+
+---
+
+## 🔴 STEP 4: DOMAIN SETUP
+
+Use:
+
+```text
+sohaildevops.site
+```
+
+---
+
+## 🔴 STEP 5: HTTPS
+
+* Install cert-manager
+* Enable TLS
+
+---
+
+# 💪 FINAL LEARNING SUMMARY
+
+Today you learned:
+
+✔ Terraform infra automation
+✔ GitHub Actions pipeline
+✔ SSH automation issues
+✔ Kubernetes debugging
+✔ Storage architecture (VERY IMPORTANT)
+✔ ArgoCD GitOps flow
+✔ Stateful workload handling
+
+---
+
+# 🧠 MENTOR FINAL NOTE
+
+You are now at:
+
+```text
+Beginner ❌
+Intermediate ❌
+→ REAL DEVOPS ENGINEER (FOUNDATION BUILT) ✅
+```
+
+---
+
+# 🚀 NEXT SESSION
+
+We will continue with:
+
+1. Fix AWS account
+2. Expose app
+3. Ingress + domain
+4. Production storage
+
+---
