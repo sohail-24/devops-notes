@@ -1,0 +1,1220 @@
+Absolutely — here are your **full detailed notes in one file style** so tomorrow you can continue **without explaining again**.
+
+---
+
+# 🚀 DEVOPS PROJECT NOTES — TODAY PROGRESS
+
+## 📌 PROJECT: Django E-Commerce (Terraform + kubeadm + ArgoCD + Helm + GitHub Actions + S3)
+
+---
+
+# 🔥 1. TODAY’S MAIN GOAL
+
+Today’s goal was:
+
+* Continue from yesterday’s **new AWS instances**
+* Verify kubeadm cluster deployment
+* Expose Django app to internet
+* Fix **500 Internal Server Error**
+* Fix **Django migrations**
+* Fix **S3 media/image upload**
+* Fix **GitHub Actions CI/CD**
+* Fix **Helm / ArgoCD image update flow**
+* Make project closer to **real GitOps DevOps architecture**
+
+---
+
+# ✅ 2. WHAT IS WORKING NOW
+
+## Kubernetes / Cluster
+
+Your kubeadm cluster is healthy:
+
+```bash
+kubectl get nodes
+```
+
+### Result:
+
+* 1 master node
+* 2 worker nodes
+* all **Ready**
+
+---
+
+## Pods running successfully
+
+```bash
+kubectl get pods -A
+```
+
+### Working namespaces:
+
+* `argocd`
+* `ecommerce`
+* `kube-system`
+
+### Ecommerce app pods running:
+
+* `django`
+* `postgres`
+* `redis`
+
+---
+
+## ArgoCD is installed and working
+
+ArgoCD app exists and is managing the ecommerce deployment.
+
+---
+
+## Django app is reachable on internet
+
+You changed Django service from:
+
+```text
+ClusterIP ❌
+```
+
+to:
+
+```text
+NodePort ✅
+```
+
+### Command used:
+
+```bash
+kubectl patch svc django -n ecommerce -p '{"spec": {"type": "NodePort"}}'
+```
+
+### Verified:
+
+```bash
+kubectl get svc -n ecommerce
+```
+
+### Output:
+
+```text
+django   NodePort   ...   80:31284/TCP
+```
+
+### Access URL:
+
+```text
+http://13.127.135.221:31284
+```
+
+---
+
+# 🔥 3. BIG PROBLEM WE SOLVED TODAY
+
+---
+
+# ❌ ISSUE 1 — Django app showing **500 Internal Server Error**
+
+When you accessed the ecommerce app in browser, it showed:
+
+```text
+500 Internal Server Error
+```
+
+---
+
+## ✅ Root cause found:
+
+Database migrations were **not applied** inside the Django pod.
+
+---
+
+## 🔍 Verification command:
+
+```bash
+kubectl exec -it -n ecommerce django-c84767697-fwpkm -- python manage.py showmigrations
+```
+
+### Result:
+
+Almost all migrations were:
+
+```text
+[ ] not applied
+```
+
+---
+
+## ✅ Fix applied:
+
+```bash
+kubectl exec -it -n ecommerce django-c84767697-fwpkm -- python manage.py migrate
+```
+
+### Result:
+
+All migrations completed successfully.
+
+---
+
+## ✅ Then pod was restarted:
+
+```bash
+kubectl rollout restart deployment django -n ecommerce
+```
+
+---
+
+## ✅ Result:
+
+Django app started working and admin login became accessible.
+
+---
+
+# 🔥 4. SUPERUSER CREATED SUCCESSFULLY
+
+You created Django admin superuser inside the pod.
+
+## Command used:
+
+```bash
+kubectl exec -it -n ecommerce django-87d768744-frxww -- python manage.py createsuperuser
+```
+
+### Created:
+
+* Email: `sohail@gmail.com`
+* First Name: `md`
+* Last Name: `sohail`
+
+---
+
+## ✅ Result:
+
+You successfully logged into:
+
+```text
+/admin
+```
+
+---
+
+# 🔥 5. IMAGE / MEDIA UPLOAD ISSUE
+
+After admin login, when you added products with images:
+
+## Problem:
+
+* Product saved
+* But image was broken / not visible
+* Sometimes page returned **500**
+* Browser showed broken image icon
+
+---
+
+# ❌ ISSUE 2 — Product images not visible
+
+---
+
+## Initial assumptions checked:
+
+We checked if issue was caused by:
+
+* NodePort
+* Security Group
+* Django app crash
+* Gunicorn
+* S3
+* ALLOWED_HOSTS
+* old pods
+
+---
+
+## Important discovery:
+
+This was **NOT infra issue**.
+
+### Infra was healthy:
+
+* cluster healthy
+* pods healthy
+* NodePort open
+* DB working
+* Redis working
+
+So problem moved from **infra level** to **application config level**.
+
+---
+
+# 🔥 6. GUNICORN TIMEOUT ISSUE FOUND
+
+From logs and browser page, we found:
+
+```text
+[CRITICAL] WORKER TIMEOUT
+```
+
+That means:
+
+* Django app was hanging during some request
+* most likely while handling image/media storage requests
+
+---
+
+## Gunicorn logs indicated:
+
+* slow or hanging media-related requests
+* worker timeout
+* sometimes session warnings
+
+---
+
+# 🔥 7. WHY IMAGE WAS FAILING
+
+After deeper debugging, real issue was identified:
+
+## Root cause:
+
+### Django production settings (`prod.py`) were **not actually configured to use S3 properly**
+
+Even though Helm env vars existed like:
+
+```yaml
+AWS_STORAGE_BUCKET_NAME
+AWS_S3_REGION_NAME
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+```
+
+Django itself was **not fully using them in production**.
+
+---
+
+# 🔥 8. S3 BUCKET CREATED SUCCESSFULLY
+
+You created S3 bucket manually:
+
+```bash
+aws s3 mb s3://sohail-django-media-bucket --region ap-south-1
+```
+
+### Result:
+
+```text
+make_bucket: sohail-django-media-bucket
+```
+
+So bucket creation worked.
+
+---
+
+# ❌ ISSUE 3 — S3 `AccessDenied`
+
+Even after image upload, browser showed:
+
+```xml
+<Code>AccessDenied</Code>
+<Message>Access Denied</Message>
+```
+
+That means:
+
+## Important conclusion:
+
+* upload to S3 was happening
+* but browser could **not read the object**
+
+---
+
+## Final understanding:
+
+Two things were missing:
+
+### 1. Django production storage config
+
+### 2. S3 bucket public-read access / object access
+
+---
+
+# 🔥 9. DJANGO SETTINGS DEBUGGING (VERY IMPORTANT)
+
+We deeply checked:
+
+* `config/settings/base.py`
+* `config/settings/prod.py`
+* `config/settings/dev.py`
+
+---
+
+# ❌ BIG SETTINGS ISSUE FOUND
+
+Your project had **old storage config** and **new storage config** at the same time.
+
+### Old style:
+
+```python
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+```
+
+### New Django 5 style:
+
+```python
+STORAGES = {
+    "default": {...},
+    "staticfiles": {...}
+}
+```
+
+---
+
+## Django error found in GitHub Actions:
+
+```text
+ImproperlyConfigured:
+DEFAULT_FILE_STORAGE/STORAGES are mutually exclusive.
+```
+
+---
+
+# ✅ ROOT CAUSE OF PIPELINE FAILURE
+
+Pipeline failed because:
+
+## `base.py` still contained:
+
+```python
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+```
+
+That conflicted with `STORAGES` in `prod.py`.
+
+---
+
+# ✅ FIX APPLIED TO DJANGO SETTINGS
+
+---
+
+## In `prod.py`:
+
+You moved to **new Django 5 correct storage style**.
+
+### Final production direction:
+
+```python
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+```
+
+And production media should use:
+
+```python
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+```
+
+---
+
+## In `base.py`:
+
+You should keep only local/default safe media:
+
+```python
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
+
+And remove old S3 storage block.
+
+---
+
+# 🔥 10. CI/CD / GITOPS FLOW ISSUE FOUND
+
+This was a **major DevOps architecture learning point**.
+
+---
+
+## Problem:
+
+You changed Django code, but cluster was still running **old image**.
+
+### Example image running:
+
+```text
+sohail28/django-ecommerce:407c301
+```
+
+So even after code changes, app behavior didn’t change.
+
+---
+
+## Root cause:
+
+Your Django repo CI was updating the **wrong infra repo**.
+
+### Old repo being updated:
+
+```text
+django_ecommerce_infra
+```
+
+That is your **EKS repo**.
+
+But kubeadm / ArgoCD project was watching:
+
+```text
+devops-ecommerce-kubeadm
+```
+
+So new image tag was **not reaching the kubeadm cluster**.
+
+---
+
+# ✅ FIXED GITOPS ARCHITECTURE
+
+You decided to keep **both repos**:
+
+## Repo 1:
+
+```text
+django_ecommerce_infra
+```
+
+→ for EKS
+
+## Repo 2:
+
+```text
+devops-ecommerce-kubeadm
+```
+
+→ for kubeadm / ArgoCD
+
+---
+
+## Correct idea:
+
+One Django app repo should update **both deployment targets**.
+
+That is a **real DevOps engineer architecture**.
+
+---
+
+# 🔥 11. FINAL CI/CD STRUCTURE DECIDED
+
+In Django repo `.github/workflows/ci.yml`:
+
+## Workflow should do:
+
+### Step 1
+
+Build Docker image
+
+### Step 2
+
+Push image to Docker Hub
+
+### Step 3
+
+Update EKS Helm repo image tag
+
+### Step 4
+
+Update kubeadm Helm repo image tag
+
+---
+
+## Final image flow:
+
+### Django repo push
+
+⬇
+
+### Docker image build
+
+⬇
+
+### Docker Hub push
+
+⬇
+
+### Update Helm values in both repos
+
+⬇
+
+### ArgoCD detects kubeadm repo change
+
+⬇
+
+### Kubernetes pulls new image
+
+---
+
+# ❌ ISSUE 4 — Docker Hub push failed
+
+After fixing Django settings conflict, the pipeline failed again.
+
+But this time it was a **different issue**.
+
+---
+
+## GitHub Actions error:
+
+```text
+received unexpected HTTP status: 504 Gateway Time-out
+```
+
+---
+
+## Meaning:
+
+This was **not code issue anymore**.
+
+### It means:
+
+* Docker build succeeded
+* image layers pushed
+* but Docker Hub push timed out
+
+---
+
+## Important conclusion:
+
+This is a **network / Docker Hub transient issue**, not project logic issue.
+
+---
+
+# ✅ Decision:
+
+Tomorrow we should make CI more stable using:
+
+### Option 1 (simple retry loop)
+
+or
+
+### Option 2 (better)
+
+Use:
+
+```yaml
+docker/build-push-action@v6
+```
+
+This is cleaner and more production-ready.
+
+---
+
+# 🔥 12. HELM / DEPLOYMENT DISCUSSIONS
+
+We reviewed and corrected several Helm files.
+
+---
+
+## File checked:
+
+```text
+helm-charts/django-ecommerce/templates/deployment.yaml
+```
+
+---
+
+## Important points:
+
+* Django container uses Gunicorn
+* environment variables injected from `django-secret`
+* AWS bucket env vars present
+* `ALLOWED_HOSTS` present
+* service exposed via Helm values
+
+---
+
+## Gunicorn improvement discussed:
+
+We decided deployment command should be stronger to avoid worker timeout.
+
+### Better command structure:
+
+```yaml
+command:
+  - sh
+  - -c
+  - |
+    echo "🚀 Starting Django..."
+    gunicorn config.wsgi:application \
+      --bind 0.0.0.0:8000 \
+      --workers 3 \
+      --timeout 120 \
+      --graceful-timeout 30 \
+      --keep-alive 5 \
+      --access-logfile - \
+      --error-logfile -
+```
+
+This should be kept for more stability.
+
+---
+
+# 🔥 13. POSTGRES STORAGE DISCUSSION
+
+We also reviewed Postgres storage.
+
+---
+
+## Your current `postgres.yaml`:
+
+```yaml
+volumes:
+  - name: postgres-storage
+    emptyDir: {}
+```
+
+---
+
+## Meaning:
+
+This is currently:
+
+```text
+NON-PERSISTENT STORAGE ❌
+```
+
+So:
+
+### If Postgres pod restarts:
+
+```text
+DATA LOST ❌
+```
+
+---
+
+## Important note:
+
+This is okay only for **temporary testing**.
+
+---
+
+## Production direction decided:
+
+Later we should move to proper storage:
+
+* AWS EBS
+* or another persistent solution
+
+---
+
+# 🔥 14. NODEPORT IMPORTANT LEARNING
+
+You asked:
+
+> Why every kubeadm recreation gives new NodePort?
+
+### Answer:
+
+Because if you don’t set a fixed nodePort manually, Kubernetes auto-assigns one from range:
+
+```text
+30000–32767
+```
+
+Example:
+
+```text
+31284
+```
+
+---
+
+## Important:
+
+That is normal.
+
+---
+
+## If you want fixed port later:
+
+You can define in service YAML:
+
+```yaml
+type: NodePort
+ports:
+  - port: 80
+    targetPort: 8000
+    nodePort: 31284
+```
+
+But for now auto-assigned is fine.
+
+---
+
+# 🔥 15. WHY WEBSITE OPENED EVEN THOUGH IP WASN’T “SAVED”
+
+You asked a smart question:
+
+> “My public IP is not saved, but website still opens — maybe host = *?”
+
+### Correct understanding:
+
+Yes, this is related to:
+
+```python
+ALLOWED_HOSTS = ["*"]
+```
+
+That allows Django to accept any host.
+
+That’s why browser access still worked even when you didn’t explicitly save public IP in code.
+
+---
+
+## Current state:
+
+Good for testing
+
+## Later production improvement:
+
+Use environment-based `ALLOWED_HOSTS`
+
+Example later:
+
+```python
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+```
+
+---
+
+# 🔥 16. SECURITY GROUP STATUS
+
+Your Terraform security group is mostly okay for current test setup.
+
+It allows:
+
+* SSH `22`
+* Kubernetes API `6443`
+* HTTP `80`
+* HTTPS `443`
+* NodePort range `30000-32767`
+* kubelet `10250`
+* internal cluster traffic
+
+---
+
+## Important:
+
+This was **not the blocker today**.
+
+So no SG change is required immediately.
+
+---
+
+# 🔥 17. GITHUB ACTIONS / DEPLOY PIPELINE STATUS TODAY
+
+---
+
+## Terraform + kubeadm pipeline
+
+Your infra pipeline is already doing:
+
+* Terraform init
+* Terraform apply
+* Get master IP
+* Setup SSH key
+* Wait for SSH
+* Run bootstrap
+* Verify cluster
+* Apply ArgoCD app
+* Wait for namespace
+* Create Django secret
+* Check pods
+* Debug if failed
+
+This pipeline is mostly okay.
+
+---
+
+## Django app CI pipeline
+
+Your app CI is still being improved.
+
+Current improvements discussed:
+
+* keep old EKS repo update
+* add kubeadm repo update
+* improve Docker push stability
+
+---
+
+# 🔥 18. BIG DEVOPS LEARNINGS FROM TODAY
+
+Today was actually a **very important DevOps day**.
+
+You learned the difference between:
+
+---
+
+## 1. Infra issue vs App issue
+
+### Infra issue examples:
+
+* EC2 not reachable
+* cluster not ready
+* SG blocked
+* pods not running
+
+### App issue examples:
+
+* migrations missing
+* S3 config wrong
+* storage conflict
+* CI build failure
+* image not updated
+
+---
+
+## 2. Source code change vs deployed image
+
+You learned a huge real-world concept:
+
+> “Changing GitHub code does NOT mean cluster changed.”
+
+Because actual deployment flow is:
+
+```text
+Code change
+→ Docker image build
+→ push image
+→ update Helm values
+→ ArgoCD sync
+→ pod restart
+→ THEN code becomes live
+```
+
+This is one of the most important DevOps learnings.
+
+---
+
+## 3. GitOps repo architecture
+
+You now understand:
+
+### App repo:
+
+contains source code
+
+### Infra / Helm repo:
+
+contains deployment definition
+
+### ArgoCD:
+
+watches infra repo, not app repo directly
+
+That is **real GitOps**.
+
+---
+
+# 🚨 19. CURRENT BLOCKERS (AS OF STOP TIME)
+
+These are the exact blockers still remaining.
+
+---
+
+## BLOCKER 1 — Docker Hub push timeout
+
+GitHub Actions failed with:
+
+```text
+504 Gateway Time-out
+```
+
+So image did not fully push.
+
+---
+
+## BLOCKER 2 — S3 object access still not fully solved
+
+Browser still showed:
+
+```text
+AccessDenied
+```
+
+That means bucket/object public-read setup still needs to be finalized.
+
+---
+
+## BLOCKER 3 — Need final production S3 storage confirmation
+
+Need to confirm that new deployed pod is generating correct:
+
+```python
+image.url
+```
+
+---
+
+## BLOCKER 4 — Need to confirm new image tag is deployed in kubeadm
+
+Need to verify cluster is no longer using old image tag.
+
+---
+
+# 🚀 20. WHAT TO DO TOMORROW (NEXT SESSION PLAN)
+
+Follow this exact order tomorrow.
+
+---
+
+# ✅ STEP 1 — Fix CI Docker Push Stability
+
+Update Django repo `.github/workflows/ci.yml`
+
+### Best upgrade:
+
+Use:
+
+```yaml
+docker/build-push-action@v6
+```
+
+OR at minimum add retry logic to Docker push.
+
+---
+
+# ✅ STEP 2 — Re-run CI Successfully
+
+Need successful run for:
+
+* image build
+* image push
+* EKS repo update
+* kubeadm repo update
+
+---
+
+# ✅ STEP 3 — Confirm Helm Repo Updated
+
+Check:
+
+```text
+helm-charts/django-ecommerce/values.yaml
+```
+
+Make sure image tag is new, not old.
+
+---
+
+# ✅ STEP 4 — Confirm ArgoCD Sync
+
+On master:
+
+```bash
+kubectl get application -n argocd
+kubectl describe application ecommerce-app -n argocd
+```
+
+Need:
+
+```text
+SYNC STATUS = Synced
+HEALTH STATUS = Healthy
+```
+
+---
+
+# ✅ STEP 5 — Restart Django Deployment
+
+After new image is confirmed:
+
+```bash
+kubectl rollout restart deployment django -n ecommerce
+kubectl rollout status deployment django -n ecommerce
+kubectl get pods -n ecommerce
+```
+
+---
+
+# ✅ STEP 6 — Verify Image URL from Django Shell
+
+Inside pod:
+
+```bash
+kubectl exec -it -n ecommerce deploy/django -- python manage.py shell
+```
+
+Then:
+
+```python
+from apps.products.models import Product
+p = Product.objects.first()
+print("NAME:", p.name)
+print("IMAGE FIELD:", p.image)
+print("IMAGE URL:", p.image.url if p.image else "NO IMAGE")
+exit()
+```
+
+This is a very important verification step.
+
+---
+
+# ✅ STEP 7 — Fix S3 Bucket Public Read
+
+Need to ensure:
+
+## Bucket policy:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::sohail-django-media-bucket/*"
+    }
+  ]
+}
+```
+
+And bucket public block settings need to allow object read for product images.
+
+---
+
+# ✅ STEP 8 — Final End-to-End Test
+
+After everything is live:
+
+1. Open admin
+2. Add one fresh product
+3. Upload image
+4. Save
+5. Open frontend
+6. Confirm image visible
+
+---
+
+# 🚀 21. IMPORTANT COMMANDS FOR TOMORROW
+
+---
+
+## Cluster status
+
+```bash
+kubectl get nodes
+kubectl get pods -A
+kubectl get svc -n ecommerce
+kubectl get application -n argocd
+```
+
+---
+
+## Django logs
+
+```bash
+kubectl logs -n ecommerce deploy/django --tail=100
+kubectl logs -f deployment/django -n ecommerce
+```
+
+---
+
+## Restart Django
+
+```bash
+kubectl rollout restart deployment django -n ecommerce
+kubectl rollout status deployment django -n ecommerce
+```
+
+---
+
+## Pod shell
+
+```bash
+kubectl exec -it -n ecommerce deploy/django -- bash
+```
+
+---
+
+## Django shell
+
+```bash
+kubectl exec -it -n ecommerce deploy/django -- python manage.py shell
+```
+
+---
+
+## S3 object check
+
+```bash
+aws s3 ls s3://sohail-django-media-bucket --recursive
+```
+
+---
+
+## Verify deployment image
+
+```bash
+kubectl get deploy django -n ecommerce -o=jsonpath='{.spec.template.spec.containers[0].image}'; echo
+```
+
+---
+
+# 🧠 22. MENTOR FINAL SUMMARY
+
+Today was not “wasted” — this was a **serious real-world DevOps debugging day**.
+
+You touched and learned:
+
+* Terraform backend/state
+* kubeadm cluster verification
+* ArgoCD GitOps behavior
+* Helm deployment flow
+* NodePort exposure
+* Django migrations
+* S3 storage config
+* Docker image lifecycle
+* CI/CD repo architecture
+* GitOps repo separation
+* production config debugging
+
+That is not beginner work.
+
+---
+
+# 🎯 23. WHERE WE WILL START TOMORROW
+
+Tomorrow we will start from exactly this point:
+
+## FIRST TASK:
+
+### Fix Docker image push stability in CI
+
+Then continue deployment verification.
+
+---
+
+# 🔥 VERY IMPORTANT REMEMBER
+
+## DO NOT tomorrow start with:
+
+```bash
+terraform destroy
+```
+
+Because that is **not needed**.
+
+Current infra is usable.
+
+Tomorrow we continue from:
+
+* CI fix
+* redeploy
+* S3 image final fix
+
+---
+
+If you want tomorrow, I’ll continue directly from these notes and we’ll go straight into **Step 1** without wasting time.
