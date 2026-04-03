@@ -38,8 +38,9 @@ On Tuesday, 4th May 2026
 **Dinner:** Follows
 
 **Venue:**
-GOUHAR GULSHAN FUNCTION HALL
-Near Water Tank, Moghalpura, Hyderabad
+MUGHAL GARDEN FUNCTION HALL
+Pillar No. 102, Karwan, Ring Road, Hyderabad
+
 
 ---
 
@@ -51,8 +52,8 @@ On Wednesday, 5th May 2026
 **Dinner:** 9:00 p.m.
 
 **Venue:**
-MUGHAL GARDEN FUNCTION HALL
-Pillar No. 102, Karwan, Ring Road, Hyderabad
+GOUHAR GULSHAN FUNCTION HALL
+Near Water Tank, Moghalpura, Hyderabad
 
 ---
 
