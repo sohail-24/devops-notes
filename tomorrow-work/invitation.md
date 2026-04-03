@@ -11,7 +11,7 @@ Late Mr. Zainul Abidin Sahab
 **Father**
 Late Mohammed Ghayasuddin Sahab
 
-Request the honour of your gracious presence on the auspicious occasion of the
+Solicit your gracious presence on the joyful occasion of the
 
 ## **VALIMA CEREMONY**
 
