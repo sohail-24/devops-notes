@@ -524,6 +524,109 @@ If you want, next I can do one of these 2:
 If I were you, I’d do **both**.
 
 
+---
+
+
+
+
+
+
+
+
+
+---
+
+
+
+
+
+---
+
+
+
+🚀 EKS ARCHITECTURE — INTERVIEW NOTES
+
+🎤 Project Summary
+I built a production-grade e-commerce platform on AWS EKS using Terraform, GitHub Actions, ArgoCD, and Helm with a fully automated zero-manual deployment pipeline.
+
+🧱 Architecture
+1. Infrastructure (Terraform)
+- VPC, public + private subnets
+- Internet Gateway + NAT Gateway
+- EKS cluster + node group
+- IAM roles (IRSA)
+- S3 (media storage + Terraform state)
+
+2. Kubernetes (EKS)
+- Managed control plane (AWS)
+- Worker nodes (node group)
+- EBS CSI Driver (storage)
+
+Workloads:
+- Django (Deployment)
+- PostgreSQL (StatefulSet + PVC)
+- Redis (Deployment)
+
+3. Application
+- Django app
+- PostgreSQL database
+- Redis cache
+- Media stored in S3 using IRSA
+
+⚙️ Deployment Flow
+Git Push →
+GitHub Actions →
+Docker Build & Push →
+Update GitOps Repo →
+ArgoCD Sync →
+Kubernetes Deploy →
+ALB Created →
+App Live 🚀
+
+🔄 GitOps (ArgoCD)
+- Git = source of truth
+- Auto sync deployments
+- Self-healing supported
+
+📦 Helm
+- Used Helm charts for:
+  - Django
+  - PostgreSQL
+  - Redis
+- Managed env vars, probes, services
+
+💾 Storage
+- PostgreSQL → EBS (PVC gp2)
+- Dynamic provisioning via CSI driver
+
+🌐 Networking
+- AWS ALB via Ingress
+- Public access via LoadBalancer DNS
+
+🔐 Security
+- IRSA (IAM roles for pods)
+- No hardcoded AWS keys
+- S3 with encryption + versioning
+
+🔄 CI/CD
+Deploy:
+- Build image → push → update repo → ArgoCD sync
+
+Destroy:
+- Delete K8s resources → node group → Terraform destroy
+
+🐞 Problems Solved
+- S3 upload 500 error → wrong bucket name after AWS account change
+- IRSA vs access keys conflict
+- PVC pending → fixed with CSI driver
+- Pipeline failures → Docker + Git token fixes
+
+🏁 Final Result
+- Fully automated infra + app deployment
+- One command → deploy everything
+- One command → destroy everything
+
+
 
 
 
