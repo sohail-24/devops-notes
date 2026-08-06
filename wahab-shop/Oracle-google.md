@@ -3,63 +3,65 @@
 
 # FreshFlow - Cloud Deployment Notes
 
-## Phase 13 - Oracle Cloud Attempt (Completed)
-
-### Goal
-
-Deploy FreshFlow on Oracle Cloud Always Free VM.
+## Phase 13 - Multi-Cloud Evaluation (Completed)
 
 ---
 
-## Oracle Account
+# Goal
+
+Find a cloud platform to host **FreshFlow** in production with:
+
+* Docker
+* Docker Compose
+* Nginx
+* PostgreSQL
+* Custom Domain
+* HTTPS
+* Lowest possible cost
+
+---
+
+# Cloud Platforms Evaluated
+
+---
+
+# 1. Oracle Cloud Infrastructure (OCI)
+
+## Goal
+
+Use Oracle Always Free ARM VM.
+
+### Account
 
 * ✅ Oracle Free Tier account created.
 * ✅ Home Region: India South (Hyderabad)
-* ✅ Only one subscribed region.
-* ❌ Cannot subscribe to Mumbai.
+* ✅ One subscribed region only.
 
 ---
 
 ## Instance Configuration
 
-**Name**
-
-```
-FreshFlow
-```
-
-**OS**
-
-```
-Ubuntu 24.04 LTS
-```
-
-**Shape Tried**
+### Shape
 
 ```
 VM.Standard.A1.Flex
 ```
 
-Status:
-
-```
-Always Free
-```
-
-Resources:
+Resources
 
 ```
 1 OCPU
 6 GB RAM
+Always Free
 ```
 
 ---
 
 ## SSH
 
-* ✅ Generated SSH key pair.
-* ✅ Downloaded private key successfully.
-* ✅ SSH configuration was correct.
+* ✅ SSH key pair generated.
+* ✅ Private key downloaded.
+* ✅ SSH configuration verified.
 
 ---
 
@@ -67,156 +69,347 @@ Resources:
 
 * ✅ VCN created.
 * ✅ Public IP enabled.
-* ✅ Everything configured correctly.
+* ✅ Internet Gateway configured.
+* ✅ Security rules configured.
 
 ---
 
-## Errors Found
+## Errors
 
-### Error 1
+### Error
 
 ```
 Out of capacity for shape VM.Standard.A1.Flex
 ```
 
-Reason:
+Meaning
 
-Oracle has no available A1 Flex servers in our Availability Domain.
-
----
-
-### Error 2
-
-Initially
-
-```
-No SSH Access
-```
-
-Reason:
-
-Private key was not downloaded.
-
-Fixed:
-
-```
-Downloaded SSH private key.
-```
-
-Not an issue anymore.
+Oracle had no available ARM servers.
 
 ---
 
-## Availability Domain
+### Availability Domain
 
-Our account only has
+Available
 
 ```
 AD-1
 ```
 
-Cannot change to
+Unavailable
 
 ```
 AD-2
 AD-3
 ```
 
-Oracle tenancy does not provide additional Availability Domains.
+Our tenancy only provides AD-1.
 
 ---
 
 ## Region
 
-Only
+Available
 
 ```
 India South (Hyderabad)
 ```
 
-Available.
-
-Mumbai cannot be subscribed because of Free Tier tenancy limitations.
+Mumbai cannot be added to this tenancy.
 
 ---
 
-## AMD Shapes
+## AMD Instance
 
-Available:
+Available
 
 ```
 VM.Standard.E2.1.Micro
 ```
 
-Always Free
-
-But only
+Resources
 
 ```
 1 GB RAM
 ```
 
-Not suitable for our long-term FreshFlow deployment.
+Decision
+
+Too small for FreshFlow production.
 
 ---
 
-# Final Decision
+## Oracle Final Result
 
-After trying:
+Tried:
 
-* Yesterday evening (~5 PM)
-* Today early morning (5–6 AM)
-* Today again around 11 AM
+* Yesterday evening
+* Today early morning
+* Today morning again
 
-Oracle still returned
+Result
 
 ```
 Out of capacity
 ```
 
-The issue is Oracle capacity, **not** our configuration.
+Conclusion
+
+The issue is Oracle infrastructure capacity, not our configuration.
 
 ---
 
-# Decision
+# Oracle Decision
 
-✅ Stop spending time on Oracle.
-
-Switch to
-
-# Google Cloud Platform (GCP)
-
-Reason:
-
-* Better chance of getting a VM without capacity issues.
-* Reliable infrastructure.
-* Excellent platform for learning DevOps.
-* Suitable for Docker, Nginx, PostgreSQL, and FreshFlow.
+Stop spending more time on Oracle.
 
 ---
 
-# Next Session Plan
+# 2. Google Cloud Platform (GCP)
 
-We will start directly with:
+## Goal
+
+Evaluate Google Compute Engine.
+
+---
+
+## Project
 
 ```
-Google Cloud
+FreshFlow
 ```
 
-Steps:
+---
 
-1. Create GCP account.
-2. Create Ubuntu VM.
+## Machine Configuration
+
+Machine Series
+
+```
+E2
+```
+
+Machine Type
+
+```
+e2-small
+```
+
+Resources
+
+```
+2 vCPU
+2 GB RAM
+```
+
+---
+
+## Operating System
+
+```
+Debian GNU/Linux 13
+```
+
+Boot Disk
+
+```
+Balanced Persistent Disk
+```
+
+Size
+
+```
+10 GB
+```
+
+---
+
+## Configuration Completed
+
+### Machine
+
+* ✅ Name configured
+* ✅ Region selected
+* ✅ Zone automatic
+
+---
+
+### Storage
+
+* ✅ Debian selected
+* ✅ 10 GB disk
+* ✅ Balanced disk
+
+---
+
+### Data Protection
+
+Selected
+
+```
+No Backups
+```
+
+---
+
+### Networking
+
+Enabled
+
+```
+HTTP
+HTTPS
+```
+
+Kept default
+
+* Public IPv4
+* Premium Network
+* Default VPC
+
+---
+
+### Observability
+
+Left default.
+
+---
+
+### Security
+
+Kept default configuration.
+
+---
+
+### Advanced
+
+Kept default configuration.
+
+---
+
+## Estimated Cost
+
+Google estimated approximately
+
+```
+US$15.89/month
+```
+
+Important
+
+This VM uses **trial credits** from the free trial account.
+
+---
+
+## Google Final Result
+
+Google VM creation works.
+
+However:
+
+* It is not an Always Free VM for our required configuration.
+* It consumes trial credits.
+* After the trial ends, charges apply if the VM continues running.
+
+---
+
+# Google Decision
+
+Suitable for:
+
+* Learning
+* Practice
+* Short-term testing
+
+Not selected as the long-term host for FreshFlow.
+
+---
+
+# Multi-Cloud Comparison
+
+| Platform     | Result                                     | Decision              |
+| ------------ | ------------------------------------------ | --------------------- |
+| Oracle Cloud | Capacity unavailable                       | ❌ Skip                |
+| Google Cloud | Uses trial credits                         | ❌ Skip for production |
+| AWS          | Stable learning and deployment environment | ✅ Next choice         |
+
+---
+
+# Final Decision
+
+FreshFlow will continue on:
+
+# AWS
+
+Reason
+
+* Familiar platform from previous projects.
+* Stable VM availability.
+* Strong DevOps ecosystem.
+* Ideal for Docker, Nginx, PostgreSQL, GitHub Actions, and future Kubernetes migration.
+
+---
+
+# Deployment Plan
+
+## Phase 14
+
+Deploy FreshFlow on AWS.
+
+Steps
+
+1. Create EC2 instance.
+2. Connect using SSH.
 3. Install Docker.
 4. Install Docker Compose.
-5. Deploy FreshFlow.
-6. Configure Nginx.
-7. Connect:
+5. Clone FreshFlow repository.
+6. Configure `.env`.
+7. Run:
 
-   ```
-   amfruits.sohaildevops.site
-   ```
-8. Configure HTTPS.
-9. Complete production deployment.
+```bash
+docker compose up -d --build
+```
+
+8. Verify application.
+9. Configure Nginx.
+10. Point:
+
+```
+amfruits.sohaildevops.site
+```
+
+11. Install HTTPS (Let's Encrypt).
+12. Test production deployment.
+13. Monitor logs.
+14. Create deployment documentation.
 
 ---
+
+# Long-Term Infrastructure Roadmap
+
+```
+Local Development
+        │
+        ▼
+Docker Compose
+        │
+        ▼
+AWS EC2
+        │
+        ▼
+Production Deployment
+        │
+        ▼
+HTTPS + Custom Domain
+        │
+        ▼
+CI/CD (GitHub Actions)
+        │
+        ▼
+Monitoring
+        │
+        ▼
+Kubernetes (Future)
+```
+
+
