@@ -1,5 +1,43 @@
 # FreshFlow — Complete DevOps / Cloud Interview Notes
 
+---
+
+# FreshFlow — 5-Minute DevOps Interview Explanation
+
+FreshFlow is a **live B2B wholesale platform** used by a real business, AM Fruits. It is designed for wholesale businesses such as fruit wholesalers, vegetable suppliers, grocery distributors, and other B2B businesses.
+
+The platform has two main sides. The **business owner** can manage products, categories, inventory, orders, business information, and reports. The **buyer** can browse products, search and filter them, add products to a cart, checkout, make online payments, and view their orders.
+
+From the DevOps perspective, I deployed FreshFlow on an **AWS EC2 Ubuntu server**. I use **Docker** to run the application and **Nginx** as the public web server and reverse proxy. **Cloudflare** manages the production domain and DNS, while **Neon PostgreSQL** is used as the managed production database. **Razorpay** is integrated for online payments.
+
+When a user opens the production website, the domain is handled through Cloudflare DNS and the request reaches the AWS EC2 server. Nginx receives the request and serves the React frontend. When the frontend needs information from the backend, it sends an API request. Nginx forwards that request to the backend, which is built using **Hono and tRPC**.
+
+The backend handles the business logic and uses **Drizzle ORM** to communicate with Neon PostgreSQL. The database stores important business data such as users, companies, products, categories, inventory, carts, orders, and order items.
+
+I use Docker because it gives me a consistent and reproducible application environment. The application and its dependencies are packaged into containers, which makes deployment and redeployment easier and reduces dependency problems between environments.
+
+Nginx is important because it acts as the public entry point. It serves the React production application and forwards API requests to the internal backend. This also means the backend does not need to be directly exposed to users.
+
+For authentication, FreshFlow uses JWT-based sessions with HTTP-only cookies. Authorization is handled on the backend, so sensitive operations are not protected only by frontend buttons or routes. For example, if a buyer tries to perform a business-owner operation, the backend checks the user's permissions and rejects the request if they are not authorized.
+
+For payments, I integrated Razorpay. The backend creates the Razorpay order, the buyer completes the payment, and the backend verifies the payment information and signature before accepting the payment as valid. The Razorpay secret remains on the server and is never exposed to the frontend. The Razorpay order ID is also used to help prevent duplicate application orders.
+
+Because FreshFlow is a **real production application**, my responsibility is not limited to building and deploying it. I also have to think about reliability, security, monitoring, database protection, payment integrity, troubleshooting, and safe deployments.
+
+For example, if the application returns a **502 error**, I would not immediately restart everything. I would first investigate the request path and check whether Nginx is running correctly, whether the backend container is healthy, whether the backend is reachable, whether the expected port is available, and whether the application logs show an error. I would collect evidence first, identify the failing layer, fix the actual problem, and then verify that the application has recovered.
+
+The same approach applies to database problems. I would check the backend logs, database connectivity, configuration, credentials, and database availability before taking action.
+
+FreshFlow is currently a **production MVP**, so there are still areas for future improvement. These include stronger multi-tenant isolation, more advanced role-based permissions, audit logging, monitoring and alerting, automated CI/CD, stronger backup and recovery processes, cloud object storage, and additional business features.
+
+Kubernetes is also a future platform-engineering direction. The important point is that the **current production environment is Docker on AWS EC2**. Kubernetes is a future scaling and platform-engineering target rather than the current production runtime.
+
+Overall, FreshFlow gave me practical experience beyond simply building an application. I worked with **Linux, AWS EC2, Docker, Nginx, Cloudflare, PostgreSQL, backend APIs, authentication, authorization, payment security, deployment, and production troubleshooting**.
+
+The main lesson from the project is that once an application is live and serving real users, deployment is only the beginning. The focus becomes keeping the system **secure, reliable, available, maintainable, and safe to operate in production**.
+
+
+---
 ## Current Project Positioning
 
 **FreshFlow is a live production B2B wholesale platform serving real users and processing real transactions.**
