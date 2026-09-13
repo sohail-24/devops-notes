@@ -1,3 +1,30 @@
+> **“AM Fruits is a B2B wholesale fruit platform.**
+>
+> The main purpose of the application is to make wholesale buying easier for business customers and to help the supplier manage the business from the same system.
+>
+> There are basically two sides.
+>
+> On the buyer side, businesses can browse wholesale products, search, add products to a cart, place orders, make payments, and track their orders.
+>
+> On the owner side, the owner can manage products, categories, inventory, warehouses, orders, delivery areas, and shipping methods.
+
+> “The frontend is built with **React 19, TypeScript and Vite**.
+
+> The frontend communicates with the backend using **tRPC**, which also gives us type-safe communication between the frontend and backend.
+
+> “The backend is built with **Hono and Node.js**.
+
+> I organized the backend around different business areas instead of putting everything in one place.
+>
+> From the DevOps perspective, I deployed AM Fruits on an **AWS EC2 Ubuntu server**. I use **Docker** to run the application and **Nginx** as the public web server and reverse proxy. **Cloudflare** manages the production domain and DNS, while **Neon PostgreSQL** is used as the managed production database. **Razorpay** is integrated for online payments.
+>
+> When a user opens the production website, the domain is handled through Cloudflare DNS and the request reaches the AWS EC2 server. Nginx receives the request and serves the React frontend. When the frontend needs information from the backend, it sends an API request. Nginx forwards that request to the backend, which is built using **Hono and tRPC**.
+>
+> The backend handles the business logic and uses **Drizzle ORM** to communicate with Neon PostgreSQL. The database stores important business data such as users, products, categories, inventory, carts, orders, and order items.
+
+
+
+
 
 
 ---
