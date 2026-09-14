@@ -1,3 +1,5 @@
+
+---
 > “AM Fruits is a B2B wholesale fruit platform designed to make wholesale buying easier for business customers and also help the supplier manage the business from the same system.
 
 
@@ -20,19 +22,19 @@
 
 
 
+---
+
+>
+>
+>
+>
+>
+>
 
 
 
 
-
-
-
-
-
-
-
-
-
+---
 > **“AM Fruits is a B2B wholesale fruit platform.**
 >
 > The main purpose of the application is to make wholesale buying easier for business customers and to help the supplier manage the business from the same system.
