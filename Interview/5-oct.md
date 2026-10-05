@@ -1,22 +1,22 @@
 
 ---
-I'm Sohail — a developer, learner, and builder who loves turning ideas into real solutions.
+I'm Sohail — a developer, learner, and builder
+---
+
+who loves turning ideas into real solutions.
 I enjoy working at the intersection of cloud, DevOps,and full-stack development, 
 and I believe in continuous learning, practical experience, and creating a positive impact through technology.
 
 ---
+To gain practical experience, I completed a 6-month DevOps internship at Visas Cloud Technology,
+where I worked with AWS, Docker, Kubernetes, Jenkins, Terraform, GitHub Actions, and Linux.
 
+Along with my internship, I built several hands-on projects to upgrade my skills. 
+My primary project is AM Fruits, a B2B wholesale fruit platform.
+My second project, Smart Order, is a restaurant commerce application that provides a complete online ordering flow.
+My third project, Sohail Shop, is a production-grade Django e-commerce backend that I built from scratch
+and deployed across two Kubernetes environments: a self-managed kubeadm cluster on EC2 and a production-ready AWS EKS setup.
 
----
-“AM Fruits is a B2B wholesale fruit platform
-
----
----
-“Tex’s Chicken & Burgers is a restaurant commerce web application that I built to provide a complete online ordering flow for a restaurant.
----
-I designed and built a production-grade Django e-commerce backend from scratch
-and then deployed it using DevOps practices across two Kubernetes environments: a self-managed kubeadm cluster on EC2 and a production-ready AWS EKS setup.
----
 
 ---
 “AM Fruits is a B2B wholesale fruit platform designed to make wholesale buying easier for business customers and also help the supplier manage the business from the same system.
@@ -34,4 +34,5 @@ Cloudflare for the production domain and DNS, and Neon PostgreSQL as the managed
 So, overall, I worked across the full stack — frontend, backend, database, authentication and authorization, payments, email notifications, Docker, and production deployment.
 ”** 🧠 Remember this flow
 Business → Buyer/Admin → React → tRPC → Hono → Drizzle → Neon → Razorpay/Resend → Docker → Nginx → AWS → Cloudflare
+
 ---
