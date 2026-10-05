@@ -12,11 +12,14 @@ To gain practical experience, I completed a 6-month DevOps internship at Visas C
 where I worked with AWS, Docker, Kubernetes, Jenkins, Terraform, GitHub Actions, and Linux.
 
 Along with my internship, I built several hands-on projects to upgrade my skills. 
+>>>
 My primary project is AM Fruits, a B2B wholesale fruit platform.
+>>>
 My second project, Smart Order, is a restaurant commerce application that provides a complete online ordering flow.
+>>>
 My third project, Sohail Shop, is a production-grade Django e-commerce backend that I built from scratch
 and deployed across two Kubernetes environments: a self-managed kubeadm cluster on EC2 and a production-ready AWS EKS setup.
-
+>>>
 
 ---
 “AM Fruits is a B2B wholesale fruit platform designed to make wholesale buying easier for business customers and also help the supplier manage the business from the same system.
