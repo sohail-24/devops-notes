@@ -23,8 +23,9 @@ and deployed across two Kubernetes environments: a self-managed kubeadm cluster 
 
 ---
 “AM Fruits is a B2B wholesale fruit platform designed to make wholesale buying easier for business customers and also help the supplier manage the business from the same system.
-~~~
+```
 The application has two main sides.
+```
 On the buyer side, businesses can browse and search wholesale products, add products to a cart, place orders, make online payments through Razorpay, and track their orders. 
 On the owner/admin side, the business owner can manage products, categories, inventory, warehouses, orders, delivery areas, and shipping methods.
 The frontend is built with React 19, TypeScript, and Vite. It communicates with the backend using tRPC, which provides type-safe communication between the frontend and backend.
