@@ -1,17 +1,23 @@
 
----/main
+---
 I'm Sohail — a developer, learner, and builder who loves turning ideas into real solutions.
 I enjoy working at the intersection of cloud, DevOps,and full-stack development, 
 and I believe in continuous learning, practical experience, and creating a positive impact through technology.
+
 ---
----/projects
+
+
+---
 “AM Fruits is a B2B wholesale fruit platform
+
+---
 ---
 “Tex’s Chicken & Burgers is a restaurant commerce web application that I built to provide a complete online ordering flow for a restaurant.
 ---
 I designed and built a production-grade Django e-commerce backend from scratch
 and then deployed it using DevOps practices across two Kubernetes environments: a self-managed kubeadm cluster on EC2 and a production-ready AWS EKS setup.
 ---
+
 ---
 “AM Fruits is a B2B wholesale fruit platform designed to make wholesale buying easier for business customers and also help the supplier manage the business from the same system.
 The application has two main sides.
