@@ -43,7 +43,7 @@ I integrated Resend for transactional emails. For example, when a buyer places a
 From the DevOps side, I deployed the application on an AWS EC2 Ubuntu server. I use Docker to run the application, Nginx as the public web server and reverse proxy,
 Cloudflare for the production domain and DNS, and Neon PostgreSQL as the managed production database.
 So, overall, I worked across the full stack — frontend, backend, database, authentication and authorization, payments, email notifications, Docker, and production deployment.
-<<<
+>>>
 ”** 🧠 Remember this flow
 Business → Buyer/Admin → React → tRPC → Hono → Drizzle → Neon → Razorpay/Resend → Docker → Nginx → AWS → Cloudflare
 
