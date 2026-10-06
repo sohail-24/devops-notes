@@ -48,3 +48,31 @@ So, overall, I worked across the full stack — frontend, backend, database, aut
 Business → Buyer/Admin → React → tRPC → Hono → Drizzle → Neon → Razorpay/Resend → Docker → Nginx → AWS → Cloudflare
 
 ---
+
+
+
+>>>
+What interests me most about DevOps is solving infrastructure and automation challenges. I enjoy building systems that make deployments fast, reliable, and repeatable.
+>>>
+Watching code move smoothly from source control to production using automation and Kubernetes is something I genuinely enjoy.
+>>>
+
+---
+
+My greatest strength is that I learn by building. Whenever I pick up a new technology, I skip passive reading and immediately implement it in a real project. 
+>>>
+That hands-on experience is where most of my learning actually comes from, which helps me troubleshoot real issues faster.
+>>>
+
+Earlier in my career, I focused a bit too much on building infrastructure before documenting it properly.
+>>>
+Over time, I improved my workflow by maintaining documentation and writing architecture notes while I build.
+>>>
+This helps keep the setup transparent, organized, and easier for teams to manage.
+>>>
+DevOps covers a wide range of technologies across every stage of software development.
+>>> For instance, I use Git and GitHub for version control, Docker for containerization, and Kubernetes for orchestration.
+>>> For infrastructure, I use Terraform as Infrastructure as Code and AWS as the cloud provider.
+>>> I manage CI/CD pipelines using Jenkins and GitHub Actions, handle configuration management with Ansible, and set up monitoring and observability using Prometheus and Grafana.
+
+traveling offer a break from every day life. Its allow you to relax and recharge 
