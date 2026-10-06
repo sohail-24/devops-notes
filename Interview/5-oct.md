@@ -63,13 +63,14 @@ My greatest strength is that I learn by building. Whenever I pick up a new techn
 >>>
 That hands-on experience is where most of my learning actually comes from, which helps me troubleshoot real issues faster.
 >>>
-
+---
 Earlier in my career, I focused a bit too much on building infrastructure before documenting it properly.
 >>>
 Over time, I improved my workflow by maintaining documentation and writing architecture notes while I build.
 >>>
 This helps keep the setup transparent, organized, and easier for teams to manage.
->>>
+
+---
 DevOps covers a wide range of technologies across every stage of software development.
 >>>
 For instance, I use Git and GitHub for version control, Docker for containerization, and Kubernetes for orchestration.
