@@ -59,7 +59,7 @@ Watching code move smoothly from source control to production using automation a
 
 ---
 
-My greatest strength is that I learn by building. Whenever I pick up a new technology, I skip passive reading and immediately implement it in a real project. 
+My greatest strength is that I learn by building. Whenever I start learning a new technology, I immediately implement it in a real project rather than just reading the documentation.
 >>>
 That hands-on experience is where most of my learning actually comes from, which helps me troubleshoot real issues faster.
 >>>
