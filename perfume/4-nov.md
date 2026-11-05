@@ -2,7 +2,7 @@
 ## Cloudflare Migration & R2 Image Storage
 **Last updated:** November 4, 2026  
 **Project:** The Fragrance Store — House of Brands  
-**Current tenant:** INHALE FRAGRANCES (Website A)  
+**Current tenant:** INHALE FRAGRANCES (Website-A)  
 **Tenant slug:** `the-fragrance-store`  
 **Status:** R2 image migration successfully completed; production image-serving integration is the next major task.
 
