@@ -15,7 +15,7 @@ Along with my internship, I built several hands-on projects to upgrade my skills
 >>>
 My primary project is AM Fruits, a B2B wholesale fruit platform.
 >>>
-My second project, Smart Order, is a restaurant commerce application that provides a complete online ordering flow.
+My second project, Smart Order, is a restaurant commerce web-application designed to provides a complete online ordering flow.
 >>>
 My third project, Sohail Shop, is a production-grade Django e-commerce backend that I built from scratch
 and deployed across two Kubernetes environments: a self-managed kubeadm cluster on EC2 and a production-ready AWS EKS setup.
@@ -26,7 +26,7 @@ and deployed across two Kubernetes environments: a self-managed kubeadm cluster 
 >>>
 The application has two main sides.
 >>>
-On the buyer side, businesses can browse and search wholesale products, add products to a cart, place orders, make online payments through Razorpay, and track their orders.
+On the buyer side, businesses can browse and search wholesale products, add products to a cart, place orders, make payments, and track their orders.
 >>>
 On the owner/admin side, the business owner can manage products, categories, inventory, warehouses, orders, delivery areas, and shipping methods.
 >>>
@@ -38,7 +38,7 @@ The database stores business data such as users, products, categories, inventory
 I also implemented role-based access, so buyers and admin users have different permissions.
 The main business flow is product browsing, cart management, order placement, payment, and order management.
 >>>
-I integrated Resend for transactional emails. For example, when a buyer places an order, the admin receives an email containing the buyer's order details.
+I integrated Resend for generate emails. For example, when a buyer places an order, the admin receives an email containing the buyer's order details.
 >>>
 From the DevOps side, I deployed the application on an AWS EC2 Ubuntu server. I use Docker to run the application, Nginx as the public web server and reverse proxy,
 Cloudflare for the production domain and DNS, and Neon PostgreSQL as the managed production database.
@@ -59,7 +59,7 @@ Watching code move smoothly from source control to production using automation a
 
 ---
 
-My greatest strength is that I learn by building. Whenever I start learning a new technology, I immediately implement it in a real project rather than just reading the documentation.
+My greatest strength is that I learn by building. Whenever I start learning a new technology, I try to implement it in a real project rather than just reading the documentation.
 >>>
 That hands-on experience is where most of my learning actually comes from, which helps me troubleshoot real issues faster.
 >>>
